@@ -1,6 +1,7 @@
 package main
 
 import (
+	"app/helper"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -15,6 +16,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type RequestBody struct {
+	AWSRegion string `json:"aws_region"`
+}
+
 func main() {
 	http.HandleFunc("/monitor/servers", monitorServersHandler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -28,14 +33,32 @@ func monitorServersHandler(w http.ResponseWriter, r *http.Request) {
 	AwsAccessKey := os.Getenv("AWS_ACCESS_KEY")
 	AwsSecretKey := os.Getenv("AWS_SECRET_KEY")
 
+	var requestBody RequestBody
+
+	// Decode the request body into the requestBody struct
+	errBody := json.NewDecoder(r.Body).Decode(&requestBody)
+	if errBody != nil {
+		helper.ErrorResponse(w, http.StatusBadRequest, "Failed to decode request body")
+		return
+	}
+
+	// Ensure that AWS region is provided in the request body
+	if requestBody.AWSRegion == "" {
+		helper.ErrorResponse(w, http.StatusBadRequest, "Missing AWS region in request body")
+		return
+	}
+
+	// Use the AWS region from the request body
+	awsRegion := requestBody.AWSRegion
+
 	creds := credentials.NewStaticCredentials(AwsAccessKey, AwsSecretKey, "")
 	awsConfig := aws.NewConfig().WithCredentials(creds)
 
 	sess, err := session.NewSession(awsConfig, &aws.Config{
-		Region: aws.String("us-east-2"), // Change to your desired region
+		Region: aws.String(awsRegion), // Change to your desired region
 	})
 	if err != nil {
-		http.Error(w, "Failed to create AWS session", http.StatusInternalServerError)
+		helper.ErrorResponse(w, http.StatusInternalServerError, "Failed to create AWS session")
 		return
 	}
 	ec2Svc := ec2.New(sess)
@@ -44,7 +67,7 @@ func monitorServersHandler(w http.ResponseWriter, r *http.Request) {
 	instances, err := getEC2Instances(ec2Svc)
 	if err != nil {
 		log.Fatal(err)
-		http.Error(w, "Failed to retrieve EC2 instances", http.StatusInternalServerError)
+		helper.ErrorResponse(w, http.StatusInternalServerError, "Failed to retrieve EC2 instances")
 		return
 	}
 
@@ -53,7 +76,7 @@ func monitorServersHandler(w http.ResponseWriter, r *http.Request) {
 	// Convert monitoring data to JSON
 	monitoringJSON, err := json.Marshal(monitoringData)
 	if err != nil {
-		http.Error(w, "Failed to marshal monitoring data", http.StatusInternalServerError)
+		helper.ErrorResponse(w, http.StatusInternalServerError, "ailed to marshal monitoring data")
 		return
 	}
 
@@ -98,22 +121,18 @@ func generateMonitoringData(instances []*ec2.Instance, session *session.Session)
 		cpuOptions := *instance.CpuOptions
 		architecture := *instance.Architecture
 		serverTags := *instance.Tags[0].Value
-		privateIp := *instance.PrivateIpAddress
-		publicIp := *instance.PublicIpAddress
 		publicDomain := *instance.PublicDnsName
 		// Add more monitoring metrics as needed
 
 		monitoringData[instanceID] = map[string]interface{}{
-			"InstanceType":    instanceType,
-			"KeyName":         keyName,
-			"Architecture":    architecture,
-			"InstanceState":   instanceState,
-			"CpuOptions":      cpuOptions,
-			"ServerTags":      serverTags,
-			"PrivateIp":       privateIp,
-			"PublicIpAddress": publicIp,
-			"PublicDns":       publicDomain,
-			"cpuUtilization":  cpuUtilization,
+			"instance_type":   instanceType,
+			"key_name":        keyName,
+			"architecture":    architecture,
+			"instance_state":  instanceState,
+			"cpu_options":     cpuOptions,
+			"server_tags":     serverTags,
+			"public_dns":      publicDomain,
+			"cpu_utilization": cpuUtilization,
 
 			// Add more metrics here
 		}

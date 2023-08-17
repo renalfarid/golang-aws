@@ -1,4 +1,4 @@
-module app
+module servermon
 
 go 1.20
 

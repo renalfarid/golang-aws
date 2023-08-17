@@ -1,11 +1,11 @@
 package main
 
 import (
-	"app/helper"
 	"encoding/json"
 	"log"
 	"net/http"
 	"os"
+	"servermon/helper"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"

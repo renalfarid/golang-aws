@@ -44,10 +44,15 @@ func main() {
 	fmt.Println("Loaded .env file")
 	Port := os.Getenv("PORT")
 	fmt.Println("PORT from environment:", Port)
-
+	http.HandleFunc("/", homeHandler)
 	http.HandleFunc("/monitor/servers", monitorServersHandler)
 	fmt.Println("Starting server on port:", Port)
 	log.Fatal(http.ListenAndServe(Port, nil))
+}
+
+func homeHandler(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+	helper.SuccessResponse(w, http.StatusOK, "Success", "Welcome API")
 }
 
 func monitorServersHandler(w http.ResponseWriter, r *http.Request) {

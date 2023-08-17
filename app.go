@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"servermon/helper"
 	"time"
 
@@ -21,16 +23,30 @@ type RequestBody struct {
 }
 
 func loadEnv() {
-	err := godotenv.Load(".env")
+
+	rootDir, err := os.Getwd()
 	if err != nil {
-		log.Fatalf("Error loading .env file: %s", err)
+		log.Fatal(err)
+	}
+
+	envPath := filepath.Join(rootDir, ".env")
+
+	if _, err := os.Stat(envPath); err == nil {
+		err := godotenv.Load(envPath)
+		if err != nil {
+			log.Fatalf("Error loading .env file: %s", err)
+		}
 	}
 }
 
 func main() {
 	loadEnv()
+	fmt.Println("Loaded .env file")
 	Port := os.Getenv("PORT")
+	fmt.Println("PORT from environment:", Port)
+
 	http.HandleFunc("/monitor/servers", monitorServersHandler)
+	fmt.Println("Starting server on port:", Port)
 	log.Fatal(http.ListenAndServe(Port, nil))
 }
 

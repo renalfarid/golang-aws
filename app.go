@@ -73,16 +73,9 @@ func monitorServersHandler(w http.ResponseWriter, r *http.Request) {
 
 	monitoringData := generateMonitoringData(instances, sess)
 
-	// Convert monitoring data to JSON
-	monitoringJSON, err := json.Marshal(monitoringData)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, "ailed to marshal monitoring data")
-		return
-	}
-
 	// Set response headers
 	w.Header().Set("Content-Type", "application/json")
-	helper.SuccessResponse(w, http.StatusOK, "Success", monitoringJSON)
+	helper.SuccessResponse(w, http.StatusOK, "Success", monitoringData)
 
 }
 

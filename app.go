@@ -20,16 +20,21 @@ type RequestBody struct {
 	AWSRegion string `json:"aws_region"`
 }
 
-func main() {
-	http.HandleFunc("/monitor/servers", monitorServersHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
-}
-
-func monitorServersHandler(w http.ResponseWriter, r *http.Request) {
+func loadEnv() {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatalf("Error loading .env file: %s", err)
 	}
+}
+
+func main() {
+	loadEnv()
+	Port := os.Getenv("PORT")
+	http.HandleFunc("/monitor/servers", monitorServersHandler)
+	log.Fatal(http.ListenAndServe(Port, nil))
+}
+
+func monitorServersHandler(w http.ResponseWriter, r *http.Request) {
 	AwsAccessKey := os.Getenv("AWS_ACCESS_KEY")
 	AwsSecretKey := os.Getenv("AWS_SECRET_KEY")
 

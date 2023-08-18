@@ -59,6 +59,9 @@ func monitorServersHandler(w http.ResponseWriter, r *http.Request) {
 	AwsAccessKey := os.Getenv("AWS_ACCESS_KEY")
 	AwsSecretKey := os.Getenv("AWS_SECRET_KEY")
 
+	fmt.Println(AwsSecretKey)
+	fmt.Println(AwsAccessKey)
+
 	var requestBody RequestBody
 
 	// Decode the request body into the requestBody struct
@@ -76,8 +79,10 @@ func monitorServersHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Use the AWS region from the request body
 	awsRegion := requestBody.AWSRegion
+	fmt.Println(awsRegion)
 
 	creds := credentials.NewStaticCredentials(AwsAccessKey, AwsSecretKey, "")
+	fmt.Println(creds.Get())
 	awsConfig := aws.NewConfig().WithCredentials(creds)
 
 	sess, err := session.NewSession(awsConfig, &aws.Config{
@@ -88,6 +93,7 @@ func monitorServersHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ec2Svc := ec2.New(sess)
+	fmt.Println(ec2Svc)
 
 	// Retrieve information about your EC2 instances
 	instances, err := getEC2Instances(ec2Svc)

@@ -56,6 +56,16 @@ func homeHandler(w http.ResponseWriter, r *http.Request){
 }
 
 func monitorServersHandler(w http.ResponseWriter, r *http.Request) {
+	// Set CORS headers to allow requests from any origin
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS") // Adjust methods as needed
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type") // Adjust headers as needed
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	
 	AwsAccessKey := os.Getenv("AWS_ACCESS_KEY")
 	AwsSecretKey := os.Getenv("AWS_SECRET_KEY")
 

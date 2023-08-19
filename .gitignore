@@ -2,3 +2,4 @@
 .env.*
 /dist/
 fly.toml
+/blob/10ef5be245a6bad57e8bb818f4540640cfc1a57a/*
